@@ -57,7 +57,7 @@ const Login = () => {
         if (!email) return toast.error("Enter email first")
 
         try {
-            await fetch("http://localhost:5000/api/auth/send-otp", {
+            await fetch("https://interview-ai-agent-project.onrender.com/api/auth/send-otp", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -139,7 +139,7 @@ const Login = () => {
                             const decoded = jwtDecode(credentialResponse.credential)
 
                             try {
-                                const res = await fetch("http://localhost:5000/api/auth/google", {
+                                const res = await fetch("https://interview-ai-agent-project.onrender.com/api/auth/google", {
                                     method: "POST",
                                     headers: {
                                         "Content-Type": "application/json"
