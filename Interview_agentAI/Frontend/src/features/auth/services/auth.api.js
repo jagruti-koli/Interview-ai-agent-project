@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const api = axios.create({
-    baseURL: "http://localhost:5000",
+    baseURL: "https://interview-ai-agent-project.onrender.com",
     withCredentials: true
 })
 
@@ -13,7 +13,7 @@ export async function register({ username, email, password }) {
         return response.data
     } catch (err) {
         console.log(err.response?.data)
-        throw err 
+        throw err
     }
 }
 
@@ -25,7 +25,7 @@ export async function login({ email, password }) {
         return response.data
     } catch (err) {
         console.log(err.response?.data)
-        throw err 
+        throw err
     }
 }
 
