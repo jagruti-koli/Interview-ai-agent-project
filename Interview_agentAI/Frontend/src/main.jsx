@@ -6,7 +6,7 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 
 createRoot(document.getElementById('root')).render(
-<GoogleOAuthProvider clientId="821148191000-u6k5asmp4bvblth4vc2ktut2h8uiempk.apps.googleusercontent.com">
+  <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
   <App />
 </GoogleOAuthProvider>
 )
