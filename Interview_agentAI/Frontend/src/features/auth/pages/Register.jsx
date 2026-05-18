@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
 
+const BASE_URL = import.meta.env.VITE_BASE_URL
+
 const Register = () => {
 
     const navigate = useNavigate()
@@ -33,7 +35,7 @@ const Register = () => {
         }
 
         try {
-            await fetch("http://localhost:5000/api/auth/send-otp", {
+            await fetch(`${BASE_URL}/api/auth/send-otp`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email })

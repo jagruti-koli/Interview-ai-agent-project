@@ -16,6 +16,8 @@ const formVariant = {
     }
 }
 
+const BASE_URL = import.meta.env.VITE_BASE_URL
+
 const Login = () => {
 
     const { loading, handleLogin } = useAuth()
@@ -57,7 +59,7 @@ const Login = () => {
         if (!email) return toast.error("Enter email first")
 
         try {
-            await fetch("https://interview-ai-agent-project.onrender.com/api/auth/send-otp", {
+            await fetch(`${BASE_URL}/api/auth/send-otp`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -139,7 +141,7 @@ const Login = () => {
                             const decoded = jwtDecode(credentialResponse.credential)
 
                             try {
-                                const res = await fetch("https://interview-ai-agent-project.onrender.com/api/auth/google", {
+                                const res = await fetch(`${BASE_URL}/api/auth/google`, {
                                     method: "POST",
                                     headers: {
                                         "Content-Type": "application/json"
