@@ -788,3 +788,61 @@ $font-stack: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, s
     }
 
 }
+
+.logout-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+}
+
+.logout-modal {
+    width: 100%;
+    max-width: 380px;
+    background: #0f172a;
+    border-radius: 24px;
+    padding: 28px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 0 40px rgba(255, 0, 128, 0.25);
+}
+
+.logout-modal h3 {
+    color: white;
+    font-size: 24px;
+    margin-bottom: 12px;
+}
+
+.logout-modal p {
+    color: #94a3b8;
+    margin-bottom: 24px;
+}
+
+.logout-modal-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.logout-modal-buttons button {
+    flex: 1;
+    border: none;
+    padding: 14px;
+    border-radius: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.cancel-btn {
+    background: #1e293b;
+    color: white;
+}
+
+.confirm-btn {
+    background: linear-gradient(135deg, #ff0080, #ff4d6d);
+    color: white;
+}

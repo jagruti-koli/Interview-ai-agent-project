@@ -11,6 +11,7 @@ const Home = () => {
     const [jobDescription, setJobDescription] = useState("")
     const [selfDescription, setSelfDescription] = useState("")
     const [sidebarOpen, setSidebarOpen] = useState(false)
+    const [showLogoutModal, setShowLogoutModal] = useState(false)
     const glowRef = useRef(null)
     const resumeInputRef = useRef()
     const { user } = useAuth()
@@ -127,14 +128,14 @@ const Home = () => {
 
                 {/* LOGOUT */}
                 <div className='sidebar-footer'>
-                    <button className='primary-button'
-                        onClick={() => {
-                            localStorage.clear()
-                            window.location.href = "/login"
-                        }}
+
+                    <button
+                        className='primary-button'
+                        onClick={() => setShowLogoutModal(true)}
                     >
                         Logout
                     </button>
+
                 </div>
 
             </aside>
@@ -259,6 +260,49 @@ const Home = () => {
                 </footer>
             </div>
             <Chatbot />
+            {/* LOGOUT MODAL */}
+{
+    showLogoutModal && (
+
+        <div className="logout-modal-overlay">
+
+            <div className="logout-modal">
+
+                <h3>Logout?</h3>
+
+                <p>
+                    Are you sure you want to logout?
+                </p>
+
+                <div className="logout-modal-buttons">
+
+                    <button
+                        className="cancel-btn"
+                        onClick={() => setShowLogoutModal(false)}
+                    >
+                        No
+                    </button>
+
+                    <button
+                        className="confirm-btn"
+                        onClick={() => {
+
+                            localStorage.clear()
+
+                            navigate("/login")
+                        }}
+                    >
+                        Yes Logout
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    )
+}
         </div>
     )
 }
