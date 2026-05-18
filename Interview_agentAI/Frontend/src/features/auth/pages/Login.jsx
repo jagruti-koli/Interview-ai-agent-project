@@ -47,7 +47,7 @@ const Login = () => {
 
         if (success) {
             toast.success("Login successful 🎉")
-            navigate('/')
+            window.location.href = "/"
         } else {
             toast.error("Invalid credentials")
         }
