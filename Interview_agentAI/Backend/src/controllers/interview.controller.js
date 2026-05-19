@@ -144,9 +144,8 @@ async function generateResumePdfController(req, res) {
         const interviewReport = await interviewReportModel.findById(interviewReportId)
 
         if (!interviewReport) {
-
             return res.status(404).json({
-                message: "Interview report not found"
+                message: "Interview report not found."
             })
         }
 
@@ -154,21 +153,32 @@ async function generateResumePdfController(req, res) {
 
         const pdfBuffer = await generateResumePdf({
             resume,
-            jobDescription,
-            selfDescription
+            selfDescription,
+            jobDescription
         })
+
+        // ✅ IMPORTANT FIX
+        if (!pdfBuffer) {
+            return res.status(500).json({
+                message: "Failed to generate PDF"
+            })
+        }
 
         res.set({
             "Content-Type": "application/pdf",
-            "Content-Disposition": `attachment; filename=resume_${interviewReportId}.pdf`
+            "Content-Disposition": `attachment; filename=resume_${interviewReportId}.pdf`,
+            "Content-Length": pdfBuffer.length
         })
 
-        return res.send(pdfBuffer)
+        return res.end(pdfBuffer)
 
     } catch (error) {
 
+        console.log("PDF CONTROLLER ERROR:", error)
+
         return res.status(500).json({
-            message: error.message
+            message: "PDF generation failed",
+            error: error.message
         })
     }
 }

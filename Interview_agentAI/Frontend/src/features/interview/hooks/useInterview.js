@@ -12,12 +12,12 @@ export const useInterview = () => {
         throw new Error("useInterview must be used within an InterviewProvider")
     }
 
-    const { 
-        loading, 
-        setLoading, 
-        report, 
-        setReport, 
-        reports, 
+    const {
+        loading,
+        setLoading,
+        report,
+        setReport,
+        reports,
         setReports,
         user,
         setUser
@@ -76,20 +76,30 @@ export const useInterview = () => {
     }
 
     const getResumePdf = async (interviewReportId) => {
+
         setLoading(true)
-        let response = null
+
         try {
-            response = await generateResumePdf({ interviewReportId })
-            const url = window.URL.createObjectURL(new Blob([response], { type: "application/pdf" }))
-            const link = document.createElement("a")
-            link.href = url
-            link.setAttribute("download", `resume_${interviewReportId}.pdf`)
-            document.body.appendChild(link)
-            link.click()
-        }
-        catch (error) {
+
+            const response = await generateResumePdf({
+                interviewReportId
+            })
+
+            const blob = new Blob([response], {
+                type: "application/pdf"
+            })
+
+            const url = window.URL.createObjectURL(blob)
+
+            // ✅ OPEN PDF
+            window.open(url, "_blank")
+
+        } catch (error) {
+
             console.log(error)
+
         } finally {
+
             setLoading(false)
         }
     }
@@ -102,15 +112,15 @@ export const useInterview = () => {
         }
     }, [interviewId])
 
-    return { 
-        loading, 
-        report, 
-        reports, 
+    return {
+        loading,
+        report,
+        reports,
         user,
-        generateReport, 
-        getReportById, 
-        getReports, 
-        getResumePdf 
+        generateReport,
+        getReportById,
+        getReports,
+        getResumePdf
     }
 
 }
