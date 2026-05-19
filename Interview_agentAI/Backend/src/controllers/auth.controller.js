@@ -39,11 +39,19 @@ const otpTemplate = (otp) => `
 </div>
 `
 
+// ✅ PRODUCTION COOKIE CONFIG
+const cookieOptions = {
+    httpOnly: true,
+    sameSite: "none",
+    secure: true
+}
+
 /**
  * REGISTER
  */
 async function registerUserController(req, res) {
     try {
+
         const { username, email, password } = req.body
 
         if (!username || !email || !password) {
@@ -76,11 +84,7 @@ async function registerUserController(req, res) {
             { expiresIn: "1d" }
         )
 
-        res.cookie("token", token, {
-            httpOnly: true,
-            sameSite: "lax",
-            secure: false
-        })
+        res.cookie("token", token, cookieOptions)
 
         res.status(201).json({
             message: "User registered successfully",
@@ -92,6 +96,7 @@ async function registerUserController(req, res) {
         })
 
     } catch (error) {
+        console.log(error)
         res.status(500).json({ message: error.message })
     }
 }
@@ -101,6 +106,7 @@ async function registerUserController(req, res) {
  */
 async function loginUserController(req, res) {
     try {
+
         const { email, password } = req.body
 
         if (!email || !password) {
@@ -131,11 +137,7 @@ async function loginUserController(req, res) {
             { expiresIn: "1d" }
         )
 
-        res.cookie("token", token, {
-            httpOnly: true,
-            sameSite: "lax",
-            secure: false
-        })
+        res.cookie("token", token, cookieOptions)
 
         res.status(200).json({
             message: "User logged in successfully",
@@ -147,15 +149,17 @@ async function loginUserController(req, res) {
         })
 
     } catch (error) {
+        console.log(error)
         res.status(500).json({ message: error.message })
     }
 }
 
 /**
- * GOOGLE LOGIN 🔥
+ * GOOGLE LOGIN
  */
 async function googleAuthController(req, res) {
     try {
+
         const { username, email } = req.body
 
         if (!email) {
@@ -167,6 +171,7 @@ async function googleAuthController(req, res) {
         let user = await userModel.findOne({ email })
 
         if (!user) {
+
             const hashedPassword = await bcrypt.hash("google-auth-user", 10)
 
             user = await userModel.create({
@@ -182,11 +187,7 @@ async function googleAuthController(req, res) {
             { expiresIn: "1d" }
         )
 
-        res.cookie("token", token, {
-            httpOnly: true,
-            sameSite: "lax",
-            secure: false
-        })
+        res.cookie("token", token, cookieOptions)
 
         res.status(200).json({
             message: "Google login success",
@@ -198,15 +199,14 @@ async function googleAuthController(req, res) {
         })
 
     } catch (error) {
+
         console.log(error)
+
         res.status(500).json({
             message: "Google authentication failed"
         })
     }
 }
-
-// TEMP storage (for learning purpose only)
-const otpStore = {}
 
 const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -221,6 +221,7 @@ const transporter = nodemailer.createTransport({
  */
 async function sendOtpController(req, res) {
     try {
+
         console.log("REQ BODY:", req.body)
 
         const email = req.body?.email
@@ -231,12 +232,17 @@ async function sendOtpController(req, res) {
             })
         }
 
-        const otp = String(Math.floor(100000 + Math.random() * 900000)) 
+        const otp = String(Math.floor(100000 + Math.random() * 900000))
+
         const expiresAt = new Date(Date.now() + 5 * 60 * 1000)
 
         await otpModel.deleteMany({ email })
 
-        await otpModel.create({ email, otp, expiresAt })
+        await otpModel.create({
+            email,
+            otp,
+            expiresAt
+        })
 
         await transporter.sendMail({
             from: `"Interview AI" <${process.env.EMAIL_USER}>`,
@@ -251,8 +257,12 @@ async function sendOtpController(req, res) {
         })
 
     } catch (err) {
+
         console.log("SEND OTP ERROR:", err)
-        return res.status(500).json({ message: "OTP send failed" })
+
+        return res.status(500).json({
+            message: "OTP send failed"
+        })
     }
 }
 
@@ -261,21 +271,30 @@ async function sendOtpController(req, res) {
  */
 async function verifyOtpController(req, res) {
     try {
+
         const { email, otp } = req.body
 
         if (!email || !otp) {
-            return res.status(400).json({ message: "Email & OTP required" })
+            return res.status(400).json({
+                message: "Email & OTP required"
+            })
         }
 
         const otpRecord = await otpModel.findOne({ email, otp })
 
         if (!otpRecord) {
-            return res.status(400).json({ message: "Invalid OTP" })
+            return res.status(400).json({
+                message: "Invalid OTP"
+            })
         }
 
         if (otpRecord.expiresAt < new Date()) {
+
             await otpModel.deleteMany({ email })
-            return res.status(400).json({ message: "OTP expired" })
+
+            return res.status(400).json({
+                message: "OTP expired"
+            })
         }
 
         await otpModel.deleteMany({ email })
@@ -283,6 +302,7 @@ async function verifyOtpController(req, res) {
         let user = await userModel.findOne({ email })
 
         if (!user) {
+
             const hashedPassword = await bcrypt.hash("otp-user", 10)
 
             user = await userModel.create({
@@ -298,11 +318,7 @@ async function verifyOtpController(req, res) {
             { expiresIn: "1d" }
         )
 
-        res.cookie("token", token, {
-            httpOnly: true,
-            sameSite: "lax",
-            secure: false
-        })
+        res.cookie("token", token, cookieOptions)
 
         res.status(200).json({
             message: "OTP verified",
@@ -314,24 +330,35 @@ async function verifyOtpController(req, res) {
         })
 
     } catch (error) {
+
         console.log(error)
-        res.status(500).json({ message: "OTP verification failed" })
+
+        res.status(500).json({
+            message: "OTP verification failed"
+        })
     }
 }
 
+/**
+ * RESET PASSWORD
+ */
 async function resetPasswordController(req, res) {
     try {
+
         const { email, password } = req.body
 
         const user = await userModel.findOne({ email })
 
         if (!user) {
-            return res.status(400).json({ message: "User not found" })
+            return res.status(400).json({
+                message: "User not found"
+            })
         }
 
         const hash = await bcrypt.hash(password, 10)
 
         user.password = hash
+
         await user.save()
 
         res.status(200).json({
@@ -339,7 +366,10 @@ async function resetPasswordController(req, res) {
         })
 
     } catch (error) {
-        res.status(500).json({ message: error.message })
+
+        res.status(500).json({
+            message: error.message
+        })
     }
 }
 
@@ -348,20 +378,24 @@ async function resetPasswordController(req, res) {
  */
 async function logoutUserController(req, res) {
     try {
+
         const token = req.cookies.token
 
         if (token) {
             await tokenBlacklistModel.create({ token })
         }
 
-        res.clearCookie("token")
+        res.clearCookie("token", cookieOptions)
 
         res.status(200).json({
             message: "User logged out successfully"
         })
 
     } catch (error) {
-        res.status(500).json({ message: error.message })
+
+        res.status(500).json({
+            message: error.message
+        })
     }
 }
 
@@ -370,6 +404,7 @@ async function logoutUserController(req, res) {
  */
 async function getMeController(req, res) {
     try {
+
         if (!req.user) {
             return res.status(401).json({
                 message: "Unauthorized"
@@ -395,7 +430,10 @@ async function getMeController(req, res) {
         })
 
     } catch (error) {
-        res.status(500).json({ message: error.message })
+
+        res.status(500).json({
+            message: error.message
+        })
     }
 }
 
