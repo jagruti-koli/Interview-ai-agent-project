@@ -2,35 +2,36 @@ const pdfParse = require("pdf-parse")
 const { generateInterviewReport, generateResumePdf } = require("../services/ai.service")
 const interviewReportModel = require("../models/interviewReport.model")
 
-
-
-
 /**
- * @description Controller to generate interview report based on user self description, resume and job description.
+ * @description Controller to generate interview report
  */
 async function generateInterviewReportController(req, res) {
     try {
 
-        // 🔥 SAFE FILE CHECK
-        if (!req.file) {
-            return res.status(400).json({
-                message: "Resume file is required"
-            })
-        }
+        let resumeText = ""
 
-        // ✅ FIXED pdf parsing
-        const data = await pdfParse(req.file.buffer)
-        const resumeText = data.text
+        // ✅ Resume optional
+        if (req.file) {
+            const data = await pdfParse(req.file.buffer)
+            resumeText = data.text
+        }
 
         const { selfDescription, jobDescription } = req.body
 
-        if (!selfDescription && !jobDescription) {
+        // ✅ At least one required
+        if (!resumeText && !selfDescription) {
             return res.status(400).json({
-                message: "Self description or job description required"
+                message: "Resume or self description required"
             })
         }
 
-        // 🔥 AI CALL
+        if (!jobDescription) {
+            return res.status(400).json({
+                message: "Job description required"
+            })
+        }
+
+        // ✅ AI Generate
         const aiResult = await generateInterviewReport({
             resume: resumeText,
             selfDescription,
@@ -43,7 +44,7 @@ async function generateInterviewReportController(req, res) {
             })
         }
 
-        // 🔥 DB SAVE
+        // ✅ Save DB
         const interviewReport = await interviewReportModel.create({
             user: req.user.id,
             resume: resumeText,
@@ -58,6 +59,7 @@ async function generateInterviewReportController(req, res) {
         })
 
     } catch (error) {
+
         console.log("INTERVIEW CONTROLLER ERROR:", error)
 
         return res.status(500).json({
@@ -68,13 +70,16 @@ async function generateInterviewReportController(req, res) {
 }
 
 /**
- * @description Controller to get interview report by interviewId.
+ * GET REPORT BY ID
  */
 async function getInterviewReportByIdController(req, res) {
 
     const { interviewId } = req.params
 
-    const interviewReport = await interviewReportModel.findOne({ _id: interviewId, user: req.user.id })
+    const interviewReport = await interviewReportModel.findOne({
+        _id: interviewId,
+        user: req.user.id
+    })
 
     if (!interviewReport) {
         return res.status(404).json({
@@ -88,12 +93,15 @@ async function getInterviewReportByIdController(req, res) {
     })
 }
 
-
-/** 
- * @description Controller to get all interview reports of logged in user.
+/**
+ * GET ALL REPORTS
  */
 async function getAllInterviewReportsController(req, res) {
-    const interviewReports = await interviewReportModel.find({ user: req.user.id }).sort({ createdAt: -1 }).select("-resume -selfDescription -jobDescription -__v -technicalQuestions -behavioralQuestions -skillGaps -preparationPlan")
+
+    const interviewReports = await interviewReportModel
+        .find({ user: req.user.id })
+        .sort({ createdAt: -1 })
+        .select("-resume -selfDescription -jobDescription -__v -technicalQuestions -behavioralQuestions -skillGaps -preparationPlan")
 
     res.status(200).json({
         message: "Interview reports fetched successfully.",
@@ -101,11 +109,11 @@ async function getAllInterviewReportsController(req, res) {
     })
 }
 
-
 /**
- * @description Controller to generate resume PDF based on user self description, resume and job description.
+ * GENERATE PDF
  */
 async function generateResumePdfController(req, res) {
+
     const { interviewReportId } = req.params
 
     const interviewReport = await interviewReportModel.findById(interviewReportId)
@@ -118,7 +126,11 @@ async function generateResumePdfController(req, res) {
 
     const { resume, jobDescription, selfDescription } = interviewReport
 
-    const pdfBuffer = await generateResumePdf({ resume, jobDescription, selfDescription })
+    const pdfBuffer = await generateResumePdf({
+        resume,
+        jobDescription,
+        selfDescription
+    })
 
     res.set({
         "Content-Type": "application/pdf",
@@ -128,4 +140,9 @@ async function generateResumePdfController(req, res) {
     res.send(pdfBuffer)
 }
 
-module.exports = { generateInterviewReportController, getInterviewReportByIdController, getAllInterviewReportsController, generateResumePdfController }
+module.exports = {
+    generateInterviewReportController,
+    getInterviewReportByIdController,
+    getAllInterviewReportsController,
+    generateResumePdfController
+}
