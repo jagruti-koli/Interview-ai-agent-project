@@ -113,6 +113,7 @@ async function generatePdfFromHtml(htmlContent) {
  */
 async function generateResumePdf({ resume, selfDescription, jobDescription }) {
     try {
+
         const prompt = `
 You are a senior resume writer and professional UI designer.
 
@@ -219,7 +220,13 @@ Job Description: ${jobDescription}
             "https://api.groq.com/openai/v1/chat/completions",
             {
                 model: "llama-3.3-70b-versatile",
-                messages: [{ role: "user", content: prompt }]
+                messages: [
+                    {
+                        role: "user",
+                        content: prompt
+                    }
+                ],
+                temperature: 0.7
             },
             {
                 headers: {
@@ -231,25 +238,50 @@ Job Description: ${jobDescription}
 
         let text = response.data.choices[0].message.content;
 
-        // ✅ simple cleanup
-        text = text.replace(/```json/g, "").replace(/```/g, "").trim();
+        // ✅ CLEANUP
+        text = text
+            .replace(/```json/g, "")
+            .replace(/```/g, "")
+            .trim();
 
-        // ✅ FIX: remove line breaks (THIS SOLVES YOUR ERROR)
-        text = text.replace(/\n/g, "").replace(/\r/g, "");
+        // ✅ EXTRACT JSON SAFELY
+        const firstBrace = text.indexOf("{");
+        const lastBrace = text.lastIndexOf("}");
 
-        const parsed = JSON.parse(text);
-
-        if (!parsed.html) {
-            console.log("❌ HTML missing");
+        if (firstBrace === -1 || lastBrace === -1) {
+            console.log("❌ INVALID JSON RESPONSE");
             return null;
         }
 
+        const cleanJson = text.slice(firstBrace, lastBrace + 1);
+
+        let parsed;
+
+        try {
+            parsed = JSON.parse(cleanJson);
+        } catch (err) {
+            console.log("❌ JSON PARSE ERROR:", err.message);
+            console.log(cleanJson);
+            return null;
+        }
+
+        if (!parsed.html) {
+            console.log("❌ HTML missing from AI response");
+            return null;
+        }
+
+        // ✅ GENERATE PDF
         const buffer = await generatePdfFromHtml(parsed.html);
 
         return buffer;
 
     } catch (error) {
-        console.log("❌ PDF ERROR:", error.message);
+
+        console.log(
+            "❌ PDF ERROR:",
+            error.response?.data || error.message
+        );
+
         return null;
     }
 }
